@@ -90,7 +90,25 @@ jobs:
           image-ref: tasks-api:scan
           severity: HIGH,CRITICAL
           ignore-unfixed: true
+          format: json
+          output: trivy-results.json
           exit-code: "1"
+      - name: Report scan findings
+        # Runs even when the scan fails, so every finding shows up as an annotation
+        # on the run and in the job summary (no need to dig through raw logs).
+        if: always() && hashFiles('trivy-results.json') != ''
+        run: |
+          COUNT=$(jq '[.Results[]?.Vulnerabilities[]?] | length' trivy-results.json)
+          {
+            echo "### Trivy image scan: $COUNT fixable HIGH/CRITICAL finding(s)"
+            if [ "$COUNT" -gt 0 ]; then
+              echo
+              echo "| Severity | ID | Package | Installed | Fixed in |"
+              echo "|---|---|---|---|---|"
+              jq -r '.Results[]?.Vulnerabilities[]? | "| \(.Severity) | \(.VulnerabilityID) | \(.PkgName) | \(.InstalledVersion) | \(.FixedVersion) |"' trivy-results.json
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          jq -r '.Results[]?.Vulnerabilities[]? | "::error title=\(.Severity) \(.VulnerabilityID)::\(.PkgName) \(.InstalledVersion) -> fixed in \(.FixedVersion)"' trivy-results.json | head -40
       - name: Push to GHCR
         if: github.event_name == 'push'
         run: |

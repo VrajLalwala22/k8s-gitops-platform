@@ -14,9 +14,12 @@ ENV PATH="/venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/src
-# The service never installs packages at runtime, so ship without pip
-# (smaller attack surface, and no pip CVEs in the image scan).
-RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin app \
+# Apply Debian security fixes released after the base image was built, then ship
+# without pip: the service never installs packages at runtime, so pip is pure attack surface.
+RUN apt-get update \
+ && apt-get upgrade -y --no-install-recommends \
+ && rm -rf /var/lib/apt/lists/* \
+ && useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin app \
  && python -m pip uninstall -y pip
 COPY --from=build /venv /venv
 COPY src /app/src
