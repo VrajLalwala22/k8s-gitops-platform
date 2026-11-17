@@ -2,15 +2,12 @@
 # Requires the AWS Load Balancer Controller and the EBS CSI driver (both installed by scripts/eks-bootstrap.sh).
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
   - ../../base
   - ingress.yaml
   - storageclass.yaml
-
 # The postgres-credentials Secret is NOT generated here: create it out-of-band
 # (scripts/eks-bootstrap.sh does this from a random value) so no password lives in Git.
-
 patches:
   - target:
       kind: StatefulSet
@@ -19,10 +16,9 @@ patches:
       - op: add
         path: /spec/volumeClaimTemplates/0/spec/storageClassName
         value: gp3
-
 images:
   - name: tasks-api
     newName: ghcr.io/vrajlalwala22/tasks-api
     # CI's "promote" job rewrites newTag to the commit SHA on every merge to main;
     # Argo CD sees the commit and rolls the change out. Do not edit by hand.
-    newTag: latest
+    newTag: 837dcb4a463695cc73fe4fd8dd628d39cbe3272d
