@@ -1,0 +1,39 @@
+# Local / edge environment: single-node K3s (k3d on a laptop, or k3s on a VM).
+# K3s ships Traefik as its ingress controller and local-path as its default StorageClass.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+  - ingress.yaml
+
+# Dev-only credentials, generated at build time. Never use this overlay's secret outside a laptop.
+secretGenerator:
+  - name: postgres-credentials
+    namespace: tasks
+    literals:
+      - POSTGRES_PASSWORD=local-dev-only
+
+patches:
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: tasks-api
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 1
+      - op: replace
+        path: /spec/maxReplicas
+        value: 3
+  - target:
+      kind: Deployment
+      name: tasks-api
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+images:
+  - name: tasks-api
+    newName: tasks-api
+    newTag: local

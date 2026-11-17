@@ -1,0 +1,36 @@
+# Values for prometheus-community/kube-prometheus-stack.
+# Small footprint so it fits on a single-node K3s as well as on EKS.
+prometheus:
+  prometheusSpec:
+    retention: 3d
+    # Pick up ServiceMonitors/PrometheusRules from every namespace, not only those labelled for this release.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+grafana:
+  adminPassword: change-me-local-only
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+
+# K3s embeds these components in one binary; their default scrape targets don't exist there.
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+kubeEtcd:
+  enabled: false

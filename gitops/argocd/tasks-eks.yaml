@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tasks-eks
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/VrajLalwala22/k8s-gitops-platform.git
+    targetRevision: main
+    path: k8s/overlays/eks
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tasks
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

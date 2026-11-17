@@ -1,0 +1,7 @@
+# Copy to backend.hcl and fill in. Create the bucket and table once with
+# infra/terraform/bootstrap (or by hand) before running `terraform init`.
+bucket         = "YOUR-UNIQUE-tfstate-bucket"
+key            = "tasks-platform/eks/terraform.tfstate"
+region         = "ap-south-1"
+dynamodb_table = "terraform-locks"
+encrypt        = true
